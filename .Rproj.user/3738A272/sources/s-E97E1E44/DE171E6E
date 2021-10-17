@@ -5,14 +5,14 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "4106473761",
+    "hash" : "0",
     "id" : "DE171E6E",
-    "lastKnownWriteTime" : 1634509164,
-    "last_content_update" : 1634509164718,
+    "lastKnownWriteTime" : 1634509780,
+    "last_content_update" : 1634509780870,
     "path" : "C:/Users/lenovo/Desktop/R/personal-site/config.toml",
     "project_path" : "config.toml",
     "properties" : {
-        "cursorPosition" : "7,42",
+        "cursorPosition" : "5,0",
         "scrollLine" : "0"
     },
     "read_only" : false,
