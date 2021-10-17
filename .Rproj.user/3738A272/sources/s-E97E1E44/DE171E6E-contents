@@ -1,11 +1,11 @@
-baseURL                       = "https://pedantic-kirch-abab9a.netlify.app/"
+baseURL                       = "https://doris-xinyi-liu.netlify.app/"
 languageCode                  = "id"
 title                         = "Wisnuwiry"
 theme                         = "MyBlog"
 summaryLength                 = 10
 
 [Author] # Used in authorbox
-  name                        = "Jhon Doe"
+  name                        = "Doris Liu"
   bio                         = ""
   avatar                      = "img/avatar.webp"
   job                         = "Software Engineer"
