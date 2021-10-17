@@ -1,16 +1,16 @@
-baseURL                       = "https://laughing-archimedes-9dccdf.netlify.app/"
+baseURL                       = "https://doris-xinyi-liu.netlify.app/"
 languageCode                  = "id"
-title                         = "Wisnuwiry"
+title                         = "Doris Liu"
 theme                         = "MyBlog"
 summaryLength                 = 10
 
 [Author] # Used in authorbox
   name                        = "Doris Liu"
-  bio                         = ""
-  avatar                      = "img/avatar.webp"
-  job                         = "Software Engineer"
-  gender                      = "male"
-  email                       = "jhon-doe@gmail.com"
+  bio                         = "Doris Liu (Chinese name Xinyi Liu) is from Shanghai, China. She is now pursuing Masters in Financial Analysis degree at London Business School after graduating with a BS degree in Statistics at Fudan University in China. Being one with love for financial vehicles and a sense of digits, Doris has strong incentives to work on trading desks so she is now working hard to apply for Sales and Trading/Markets summer interships. "
+  avatar                      = "img/Doris.jpg"
+  job                         = "Student in MFA LBS | Future Trader"
+  gender                      = "Female"
+  email                       = "dliu.mfa2022@london.edu"
 
 
 [Params]
@@ -54,8 +54,8 @@ summaryLength                 = 10
   
 
 [Params.Hero]
-  title                       = "A Personal Site By Jhon Doe"
-  desc                        = "Welcome to my Blog :)"
+  title                       = "A Personal Site By Doris Liu"
+  desc                        = "Hi there! Welcome to my Blog :)"
 
 [Params.Entry]
   meta                        = ["date", "categories"] # Enable meta fields in given order
@@ -77,11 +77,6 @@ pre = "📝"
 url = "/post" 
 weight = 1 
 
-[[menu.main]]
-identifier = "Snippet"
-pre = "⚒️"
-url = "/snippet" 
-weight = 2 
 
 [[menu.main]]
 identifier = "Project"
@@ -106,19 +101,19 @@ weight = 5
   homeText                    = "Home" # Home node text
 
 [Params.Social]
-  twitter                     = "jhon-doe"
-  telegram                    = "jhon-doe"
-# instagram                   = "jhon-doe"
-  linkedin                    = "wisnu-saputra"
-  github                      = "jhon-doe"
-  gitlab                      = "jhon-doe"
-  medium                      = "jhon-doe"
+#  twitter                     = ""
+#  telegram                    = ""
+  instagram                   = "dorisydoris_"
+  linkedin                    = "xinyi-doris-liu"
+  github                      = "DorisLiu-MFA"
+#  gitlab                      = ""
+#  medium                      = ""
 
 [Params.Share] # Entry Share block
   facebook                    = true
-  twitter                     = true
+  twitter                     = false
   reddit                      = true
-  telegram                    = true
+  telegram                    = false
   linkedin                    = true
   pinterest                   = true
 
