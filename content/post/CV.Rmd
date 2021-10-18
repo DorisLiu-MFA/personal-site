@@ -1,0 +1,8 @@
+---
+title: "CV_Doris"
+author: "Doris"
+date: "18/10/2021"
+output: html_document
+---
+
+![Image Title](C:/Users/lenovo/Desktop/R/personal-site/content/CV-Xinyi Liu-London Business School-updated.pdf){width=70%}

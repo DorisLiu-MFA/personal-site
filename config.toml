@@ -6,7 +6,7 @@ summaryLength                 = 10
 
 [Author] # Used in authorbox
   name                        = "Doris Liu"
-  bio                         = "Doris Liu (Chinese name Xinyi Liu) is from Shanghai, China. She is now pursuing Masters in Financial Analysis degree at London Business School after graduating with a BS degree in Statistics at Fudan University in China. Being one with love for financial vehicles and a sense of digits, Doris has strong incentives to work on trading desks so she is now working hard to apply for Sales and Trading/Markets summer interships. "
+  bio                         = ""
   avatar                      = "img/Doris.jpg"
   job                         = "Student in MFA LBS | Future Trader"
   gender                      = "Female"
@@ -17,10 +17,10 @@ summaryLength                 = 10
   subTitle                    = "Personal site, Blog, and Portfolio"
   description                 = "Sebuah catatan dan blog pribadi saya. Saya juga akan membagi tentang pengalaman saya dan teknologi-teknolgi yang saya gunakan/pelajari atau yang sedang populer." # Site Description. Used in meta description
   images                      = ["img/avatar.webp"]
-  copyright                   = "Wisnuwiry" # Copyright holder, otherwise will use .Site.Title
+  copyright                   = "Doris" # Copyright holder, otherwise will use .Site.Title
   opengraph                   = true # Enable OpenGraph if true
   twitter_cards               = true # Enable Twitter Cards if true
-  mainSections                = ["post"] # Set main page sections
+  mainSections                = ["project"] # Set main page sections
   dateFormat                  = "January 02, 2006" # Change the format of dates
   # customCSS                 = ["css/custom.css"] # Include custom CSS files
   customJS                    = []
@@ -55,7 +55,7 @@ summaryLength                 = 10
 
 [Params.Hero]
   title                       = "A Personal Site By Doris Liu"
-  desc                        = "Hi there! Welcome to my Blog :)"
+  desc                        = "Hi there! Welcome to my Website :)"
 
 [Params.Entry]
   meta                        = ["date", "categories"] # Enable meta fields in given order
@@ -72,9 +72,9 @@ summaryLength                 = 10
 [menu]
 
 [[menu.main]]
-identifier = "Post"
+identifier = "Resume"
 pre = "📝"
-url = "/post" 
+url = "resume/CV-XinyiLiu-LBS-updated.pdf" 
 weight = 1 
 
 
@@ -82,7 +82,13 @@ weight = 1
 identifier = "Project"
 pre = "🚧"
 url = "/project" 
-weight = 3 
+weight = 2 
+
+[[menu.main]]
+identifier = "Hobbies"
+pre = "⚒️"
+url = "https://m.youtube.com/channel/UC_5y6Qb0q11Dx6v6UNCTlVA/" 
+weight = 3
 
 [[menu.main]]
 identifier = "About"

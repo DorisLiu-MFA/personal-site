@@ -8,20 +8,14 @@ share: false
 page: true
 ---
 
-Written in Go, Hugo is an open source static site generator available under the [Apache Licence 2.0.](https://github.com/gohugoio/hugo/blob/master/LICENSE) Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.
 
-Hugo makes use of a variety of open source projects including:
+Doris Liu (Chinese name Xinyi Liu) is from Shanghai, China. 
 
-* https://github.com/yuin/goldmark
-* https://github.com/alecthomas/chroma
-* https://github.com/muesli/smartcrop
-* https://github.com/spf13/cobra
-* https://github.com/spf13/viper
+Doris now pursuing Masters in Financial Analysis degree at London Business School after graduating with a BS degree in Statistics at Fudan University in China. 
 
-Hugo is ideal for blogs, corporate websites, creative portfolios, online magazines, single page applications or even a website with thousands of pages.
+Being one with a love for financial vehicles and a sense of digits, Doris has strong incentives to work on trading desks so she is now working hard to apply for Sales and Trading/Markets summer interships. 
 
-Hugo is for people who want to hand code their own website without worrying about setting up complicated runtimes, dependencies and databases.
-
-Websites built with Hugo are extremely fast, secure and can be deployed anywhere including, AWS, GitHub Pages, Heroku, Netlify and any other hosting provider.
-
-Learn more and contribute on [GitHub](https://github.com/gohugoio).
+Three thing that makes Doris unique:
+- Dancer: Jazz, Urban, Kpop
+- Harry Potter fan: Magic knowledge well-equipped
+- Trader: Different career choice from most LBS students
