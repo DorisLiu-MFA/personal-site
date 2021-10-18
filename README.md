@@ -1,4 +1,8 @@
 <<<<<<< HEAD
+# personal-site
+Reference: https://hugothemesfree.com/hugo-theme-for-personal-site-blog-portfolio/
+Revised by Doris Liu.
+
 # Hugo Personal Site
 [![state](https://img.shields.io/badge/state-stable-green.svg)]() [![release](https://img.shields.io/github/release/wisnuwiry/personal-site.svg)](https://github.com/wisnuwiry/personal-site/releases) [![license](https://img.shields.io/github/license/wisnuwiry/personal-site.svg)](LICENSE)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/19d195ca-0cec-478e-9cfa-fa9527644a60/deploy-status)](https://app.netlify.com/sites/wisnuwiry/deploys)
@@ -365,8 +369,5 @@ Have you found a bug or got an idea for a new feature? Feel free to use the [iss
 @bep
 @gohugoio
 =======
-# personal-site
 
-Reference: https://hugothemesfree.com/hugo-theme-for-personal-site-blog-portfolio/
-Revised by Doris Liu.
 >>>>>>> 04f95c5f79ea301be7b30852777afc54ffea0ca4
