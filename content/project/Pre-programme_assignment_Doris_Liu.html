@@ -97,10 +97,10 @@ plot1</code></pre>
 <pre><code>## `geom_smooth()` using method = &#39;loess&#39; and formula &#39;y ~ x&#39;</code></pre>
 <p><img src="/project/Pre-programme_assignment_Doris_Liu_files/figure-html/lifeExp_facet_by_continent-1.png" width="672" /></p>
 <blockquote>
-<p>Conclusions about life expectancy since 1952:<br />
-In terms of trends, since 1952, there have been quicker increases in life expectancies of American and Asian countries, while this growth appears to be slower in Europe and Oceania. Life expectancies seem to have stayed unchanged since 1990 in Africa.<br />
-When it comes to country distributions, life expectancies of different countries in Americas, Europe and Oceania are more similar to each other, while those of African and Aisan countries disperse.</p>
+<p>Conclusions about life expectancy since 1952:</p>
 </blockquote>
+<p>In terms of trends, since 1952, there have been quicker increases in life expectancies of American and Asian countries, while this growth appears to be slower in Europe and Oceania. Life expectancies seem to have stayed unchanged since 1990 in Africa.<br />
+When it comes to country distributions, life expectancies of different countries in Americas, Europe and Oceania are more similar to each other, while those of African and Aisan countries disperse.</p>
 </div>
 <div id="task-3-brexit-vote-analysis" class="section level2">
 <h2>Task 3: Brexit vote analysis</h2>
@@ -174,9 +174,9 @@ ggplot(brexit_results, aes(x = leave_share)) +
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="/project/Pre-programme_assignment_Doris_Liu_files/figure-html/brexit_immigration_plot-1.png" width="672" /></p>
 <blockquote>
-<p>Conclusions about Brexit vote:<br />
-The constituencies with higher proportions of native born residents show higher leave share, which means more native constituencies might fear more of immigration and thus they tend to leave EU because of its more open boarder policy.</p>
+<p>Conclusions about Brexit vote:</p>
 </blockquote>
+<p>The constituencies with higher proportions of native born residents show higher leave share, which means more native constituencies might fear more of immigration and thus they tend to leave EU because of its more open boarder policy.</p>
 </div>
 <div id="task-4-animal-rescue-incidents-attended-by-the-london-fire-brigade" class="section level2">
 <h2>Task 4: Animal rescue incidents attended by the London Fire Brigade</h2>
@@ -309,9 +309,9 @@ glimpse(animal_rescue)</code></pre>
 ## 10 Unknown - Heavy Livestock Animal    50    0.64
 ## # ... with 18 more rows</code></pre>
 <blockquote>
-<p>Something strange in this table:<br />
-There are two categories, Cat and cat, which might be typo causing data ambiguity.</p>
+<p>Something strange in this table:</p>
 </blockquote>
+<p>There are two categories, Cat and cat, which might be typo causing data ambiguity.</p>
 <p>The final analysis is to look at the notional cost for rescuing each of these animals. Fix <code>incident_notional_cost</code> to change it into a number and calculate summary statistics for each animal group.</p>
 <pre class="r"><code># what type is variable incident_notional_cost from dataframe `animal_rescue`
 typeof(animal_rescue$incident_notional_cost)</code></pre>
@@ -366,9 +366,10 @@ typeof(animal_rescue$incident_notional_cost)</code></pre>
 ## # ... with 3 more variables: min_incident_cost &lt;dbl&gt;, max_incident_cost &lt;dbl&gt;,
 ## #   count &lt;int&gt;</code></pre>
 <blockquote>
+<p>Conclusions:</p>
+</blockquote>
 <p>My analysis in comparing the mean and the median for each animal group tells me that for most animal groups, mean incident costs are lower than median, which means for more than half of the incidents(positively skewed), it took smaller amount of costs compared with mean.<br />
 The outliers are Squirrel, Ferret and Rabbit.</p>
-</blockquote>
 <p>Exploration in the distribution of incident cost for each animal group is as follows:</p>
 <pre class="r"><code># base_plot
 base_plot &lt;- animal_rescue %&gt;% 
@@ -388,12 +389,12 @@ base_plot + geom_histogram()</code></pre>
   scale_y_continuous(labels = scales::percent)</code></pre>
 <p><img src="/project/Pre-programme_assignment_Doris_Liu_files/figure-html/plots_on_incident_cost_by_animal_group-4.png" width="672" /></p>
 <blockquote>
+<p>Conclusions about incident notional costs in rescuing animals:</p>
+</blockquote>
 <p>Boxplot best communicates the variability of the <code>incident_notional_cost</code> values because it can show the 25%, 75% quantiles and median.<br />
-Conclusions about incident notional costs in rescuing animals:<br />
 1. Horses, deers, cows, foxes and other wild or heavy livestock animals are more expensive to rescue, probably due to their size and thus longer time to rescue. According to standard deviation of incident notional costs and boxplots, the costs to rescue these mentioned large-size animals also vary a lot.<br />
 2. For cats and dogs, incident costs are lower and less diverse. Costs are even lower and less diverse for hamster，squirrel, ferret and rabbit.<br />
 3. This correlation between animal size, incident cost and spread of values is possibly explained by that large animals are harder to control and might need more labour, time and materials to rescue.</p>
-</blockquote>
 <p>Additional Information:<br />
 - Who did you collaborate with: None<br />
 - Approximately how much time did you spend on this problem set: 2.5 hours<br />

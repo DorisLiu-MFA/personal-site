@@ -94,6 +94,7 @@ ggplot(data = gapminder , mapping = aes(x = year, y = lifeExp, colour= continent
 ```
 
 > Conclusions about life expectancy since 1952:  
+
 In terms of trends, since 1952, there have been quicker increases in life expectancies of American and Asian countries, while this growth appears to be slower in Europe and Oceania. Life expectancies seem to have stayed unchanged since 1990 in Africa.  
 When it comes to country distributions, life expectancies of different countries in Americas, Europe and Oceania are more similar to each other, while those of African and Aisan countries disperse.  
 
@@ -174,6 +175,7 @@ ggplot(brexit_results, aes(x = born_in_uk, y = leave_share)) +
 
 
 > Conclusions about Brexit vote:  
+
 The constituencies with higher proportions of native born residents show higher leave share, which means more native constituencies might fear more of immigration and thus they tend to leave EU because of its more open boarder policy.
 
 
@@ -234,7 +236,9 @@ animal_rescue %>%
 ```
 
 > Something strange in this table:  
+
 There are two categories, Cat and cat, which might be typo causing data ambiguity.
+
 
 The final analysis is to look at the notional cost for rescuing each of these animals. Fix `incident_notional_cost` to change it into a number and calculate summary statistics for each animal group. 
 
@@ -279,7 +283,9 @@ animal_rescue %>%
 
 ```
 
-> My analysis in comparing the mean and the median for each animal group tells me that for most animal groups, mean incident costs are lower than median, which means for more than half of the incidents(positively skewed), it took smaller amount of costs compared with mean.  
+> Conclusions: 
+
+My analysis in comparing the mean and the median for each animal group tells me that for most animal groups, mean incident costs are lower than median, which means for more than half of the incidents(positively skewed), it took smaller amount of costs compared with mean.  
 The outliers are Squirrel, Ferret and Rabbit.
 
 
@@ -305,8 +311,9 @@ base_plot + stat_ecdf(geom = "step", pad = FALSE) +
 
 ```
 
-> Boxplot best communicates the variability of the `incident_notional_cost` values because it can show the 25%, 75% quantiles and median.  
-Conclusions about incident notional costs in rescuing animals:  
+> Conclusions about incident notional costs in rescuing animals:  
+
+Boxplot best communicates the variability of the `incident_notional_cost` values because it can show the 25%, 75% quantiles and median.  
 1. Horses, deers, cows, foxes and other wild or heavy livestock animals are more expensive to rescue, probably due to their size and thus longer time to rescue. According to standard deviation of incident notional costs and boxplots, the costs to rescue these mentioned large-size animals also vary a lot.  
 2. For cats and dogs, incident costs are lower and less diverse. Costs are even lower and less diverse for hamster，squirrel, ferret and rabbit.  
 3. This correlation between animal size, incident cost and spread of values is possibly explained by that large animals are harder to control and might need more labour, time and materials to rescue. 
