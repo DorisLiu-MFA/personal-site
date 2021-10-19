@@ -1,0 +1,220 @@
+---
+title: "Opinion polls for the 2021 German elections"
+author: "Study group B3: Doris Liu"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    code_folding: show
+---
+
+
+```{r, setup, echo=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=FALSE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, warning=FALSE, message=FALSE, echo=FALSE}
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(fivethirtyeight)
+library(here)
+library(skimr)
+library(janitor)
+library(vroom)
+library(tidyquant)
+library(rvest) # to scrape wikipedia page
+library(kableExtra)
+library(fivethirtyeight)
+library(ggrepel)
+```
+
+
+We want to see the past trends of polling results for different parties in the 2021 German federal election.
+
+The Guardian newspaper has an [election poll tracker for the upcoming German election](https://www.theguardian.com/world/2021/aug/20/german-election-poll-tracker-who-will-be-the-next-chancellor).
+The list of the opinion polls since Jan 2021 can be found at [Wikipedia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election).
+
+## Scrape the data
+
+We first scrape the wikipedia page and import the table in a dataframe, named as german_election_polls.
+
+
+```{r, scrape_wikipedia_polling_data, warnings= FALSE, message=FALSE}
+url <- "https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election"
+
+# similar graphs and analyses can be found at 
+# https://www.theguardian.com/world/2021/jun/21/german-election-poll-tracker-who-will-be-the-next-chancellor
+# https://www.economist.com/graphic-detail/who-will-succeed-angela-merkel
+
+
+# get tables that exist on wikipedia page 
+tables <- url %>% 
+  read_html() %>% 
+  html_nodes(css="table")
+
+
+# parse HTML tables into a dataframe called polls 
+# Use purr::map() to create a list of all tables in URL
+polls <- map(tables, . %>% 
+             html_table(fill=TRUE)%>% 
+             janitor::clean_names())
+
+
+# list of opinion polls
+german_election_polls <- polls[[1]] %>% # the first table on the page contains the list of all opinions polls
+  slice(2:(n()-1)) %>%  # drop the first row, as it contains again the variable names and last row that contains 2017 results
+  mutate(
+         # polls are shown to run from-to, e.g. 9-13 Aug 2021. We keep the last date, 13 Aug here, as the poll date
+         # and we extract it by picking the last 11 characters from that field
+         end_date = str_sub(fieldwork_date, -11),
+         
+         # end_date is still a string, so we convert it into a date object using lubridate::dmy()
+         end_date = dmy(end_date),
+         
+         # we also get the month and week number from the date, if we want to do analysis by month- week, etc.
+         month = month(end_date),
+         week = isoweek(end_date)
+         )
+```
+
+## Glimpse and restructure the data
+
+
+We then take a look at the generated German Election Polls data framework.
+The missing value is caused by data structure and we eliminated it. 
+
+```{r,glimpse into poll data}
+glimpse(german_election_polls)
+skim(german_election_polls)
+
+#Using skim, We found 1 NA
+german_election_polls = na.omit(german_election_polls)
+```
+
+To make the data more readable, we restructure the dataset and melt the 6 parties polls (Union, SPD, AfD, FDP, Linke, and Grune).
+We select the Party and Vote variables, and add the 'end_date' as x variable for plotting.
+
+```{r german poll dataframe melting and restructuring}
+#Restructure the dataframe, select 6 parties polls and melt
+library(reshape2)
+german_election_polls_restr <- german_election_polls %>%
+  mutate(Union=union, SPD=spd, AfD=af_d, FDP=fdp, Linke=linke, Grune=grune) %>%
+  melt(german_election_polls, id.vars=c("Union","SPD","AfD", "FDP", "Linke", "Grune"),
+                                        measure.vars = c("Union","SPD","AfD", "FDP", "Linke", "Grune"),
+                                        variable.name = "Party",value.name = "Vote") 
+
+
+#Select the Party and Vote variables, and add the end_date as x variable for plotting
+german_election_polls_restr <- german_election_polls_restr %>%
+  select(Party, Vote) %>%
+  mutate(end_date=rep(german_election_polls$end_date,times=6))
+  
+```
+
+## Plot the data
+
+Then we use geom_smooth to generate the 2021 German Federal Election Polling Results plot of the 6 parties.
+
+```{r german poll plot (using geom_smooth), fig.width=15, fig.height=12}
+
+ggplot(german_election_polls_restr, aes(x=end_date, y=Vote, color=Party)) +
+  geom_point()+
+  geom_smooth(se=F,span=0.2)+ #span=0.2 to make the line less smoothed
+  scale_color_manual(values=c("Union"="black","SPD"="#AF1513","AfD"="#330D9D","FDP"="#FFC300","Linke"="#650D9D","Grune"="#0D9D36"))+ #manually select colors for different parties
+  scale_x_date(date_breaks = "1 month" , date_labels = c("%b %y"),limits=as.Date(c("2021-01-01","2021-10-01")))+
+  theme_minimal()  +
+  theme(legend.position = "right",
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=14),
+        legend.key = element_rect(fill = "white", color = "white"),
+        plot.title =element_text(size=20, face='bold',hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face='bold',hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face='bold'),
+        axis.title.y = element_text(size=16,face='bold'),
+        ) +
+  labs(title = "2021 German Federal Election Polling Results",
+         subtitle = "Combined results from different polling firms: INSA, Forsa, Kantar etc.",
+         x = "End date of fieldwork",
+         y = "",
+         caption = "Source: https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election") +
+  ylab("Vote %")
+
+```
+
+The pulling result trends are illustrated in the graph, with the data of each party spreading around the generated lines. 
+
+
+## Another method: rolling mean
+
+Finally,  we try to use another method - rolling mean of 14 records instead of directly applying smoothing lines to make the plot.
+
+```{r german poll data rolling 14 records}
+german_election_polls_rolling <- german_election_polls_restr %>%   
+  group_by(Party) %>%
+  mutate( 
+    #calculate 14-record rolling average, align = left
+    Vote14 = zoo::rollmean(Vote, k=14, fill = NA,align="left"))%>%
+  ungroup() %>%
+  na.omit(german_election_polls_rolling) #remove the NA caused by rolling average
+
+```
+
+```{r german poll plot(using rolling), fig.width=15, fig.height=12}
+
+ggplot(german_election_polls_rolling, aes(x=end_date, y=Vote14, color=Party)) +
+  geom_point()+
+  geom_smooth(se=F,span=0.2)+ #span=0.2 to make the line less smoothed
+  scale_color_manual(values=c("Union"="black","SPD"="#AF1513","AfD"="#330D9D","FDP"="#FFC300","Linke"="#650D9D","Grune"="#0D9D36"))+ #manually select colors for different parties
+  scale_x_date(date_breaks = "1 month" , date_labels = c("%b %y"),limits=as.Date(c("2021-01-01","2021-10-01")))+
+  theme_minimal()  +
+  theme(legend.position = "right",
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=14),
+        legend.key = element_rect(fill = "white", color = "white"),
+        plot.title =element_text(size=20, face='bold',hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face='bold',hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face='bold'),
+        axis.title.y = element_text(size=16,face='bold'),
+        ) +
+  labs(title = "2021 German Federal Election Polling Results (14-record rolling mean)",
+         subtitle = "Combined results from different polling firms: INSA, Forsa, Kantar etc.",
+         x = "End date of fieldwork",
+         y = "",
+         caption = "Source: https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election") +
+  ylab("Vote %")
+
+```
+
+> Conclusion
+
+We can infer from this plot that the rolling average reached similar trendlines with the former method, but looking at the points, it also eliminated the biases of different polling firms.  
+The Union almost keeps the highest vote percentage over the election period although shows decending trend. Then followed by Grune,and SPD. Noticeably,  the voting percentage of SPD shows significant rise since Auguest 2021, and ranked the highest percentage record over the 6 parties. 
+
+

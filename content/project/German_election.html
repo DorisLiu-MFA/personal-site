@@ -1,0 +1,856 @@
+---
+title: "Opinion polls for the 2021 German elections"
+author: "Study group B3: Doris Liu"
+date: "2021-10-19"
+output:
+  html_document:
+    theme: flatly
+    highlight: zenburn
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+    code_folding: show
+---
+
+
+
+<p>We want to see the past trends of polling results for different parties in the 2021 German federal election.</p>
+<p>The Guardian newspaper has an <a href="https://www.theguardian.com/world/2021/aug/20/german-election-poll-tracker-who-will-be-the-next-chancellor">election poll tracker for the upcoming German election</a>.
+The list of the opinion polls since Jan 2021 can be found at <a href="https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election">Wikipedia</a>.</p>
+<div id="scrape-the-data" class="section level2">
+<h2>Scrape the data</h2>
+<p>We first scrape the wikipedia page and import the table in a dataframe, named as german_election_polls.</p>
+<pre class="r"><code>url &lt;- &quot;https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election&quot;
+
+# similar graphs and analyses can be found at 
+# https://www.theguardian.com/world/2021/jun/21/german-election-poll-tracker-who-will-be-the-next-chancellor
+# https://www.economist.com/graphic-detail/who-will-succeed-angela-merkel
+
+
+# get tables that exist on wikipedia page 
+tables &lt;- url %&gt;% 
+  read_html() %&gt;% 
+  html_nodes(css=&quot;table&quot;)
+
+
+# parse HTML tables into a dataframe called polls 
+# Use purr::map() to create a list of all tables in URL
+polls &lt;- map(tables, . %&gt;% 
+             html_table(fill=TRUE)%&gt;% 
+             janitor::clean_names())
+
+
+# list of opinion polls
+german_election_polls &lt;- polls[[1]] %&gt;% # the first table on the page contains the list of all opinions polls
+  slice(2:(n()-1)) %&gt;%  # drop the first row, as it contains again the variable names and last row that contains 2017 results
+  mutate(
+         # polls are shown to run from-to, e.g. 9-13 Aug 2021. We keep the last date, 13 Aug here, as the poll date
+         # and we extract it by picking the last 11 characters from that field
+         end_date = str_sub(fieldwork_date, -11),
+         
+         # end_date is still a string, so we convert it into a date object using lubridate::dmy()
+         end_date = dmy(end_date),
+         
+         # we also get the month and week number from the date, if we want to do analysis by month- week, etc.
+         month = month(end_date),
+         week = isoweek(end_date)
+         )</code></pre>
+</div>
+<div id="glimpse-and-restructure-the-data" class="section level2">
+<h2>Glimpse and restructure the data</h2>
+<p>We then take a look at the generated German Election Polls data framework.
+The missing value is caused by data structure and we eliminated it.</p>
+<pre class="r"><code>glimpse(german_election_polls)</code></pre>
+<pre><code>## Rows: 250
+## Columns: 16
+## $ polling_firm   &lt;chr&gt; &quot;2021 federal election&quot;, &quot;Wahlkreisprognose&quot;, &quot;Ipsos&quot;, ~
+## $ fieldwork_date &lt;chr&gt; &quot;26 Sep 2021&quot;, &quot;22–24 Sep 2021&quot;, &quot;22–23 Sep 2021&quot;, &quot;22–~
+## $ samplesize     &lt;chr&gt; &quot;–&quot;, &quot;1,400&quot;, &quot;2,000&quot;, &quot;1,273&quot;, &quot;2,002&quot;, &quot;1,554&quot;, &quot;10,0~
+## $ abs            &lt;chr&gt; &quot;23.4&quot;, &quot;–&quot;, &quot;–&quot;, &quot;–&quot;, &quot;26&quot;, &quot;–&quot;, &quot;–&quot;, &quot;–&quot;, &quot;–&quot;, &quot;–&quot;, &quot;~
+## $ union          &lt;dbl&gt; 24.1, 22.5, 22.0, 23.0, 22.0, 25.0, 23.0, 21.0, 21.5, 2~
+## $ spd            &lt;dbl&gt; 25.7, 25.5, 26.0, 25.0, 25.0, 26.0, 25.0, 25.0, 25.0, 2~
+## $ af_d           &lt;dbl&gt; 10.3, 11.0, 11.0, 10.0, 10.0, 10.0, 10.0, 12.0, 11.0, 1~
+## $ fdp            &lt;dbl&gt; 11.5, 12.0, 12.0, 11.0, 12.0, 10.5, 12.0, 11.0, 12.5, 1~
+## $ linke          &lt;dbl&gt; 4.9, 7.0, 7.0, 6.0, 6.0, 5.0, 6.0, 7.0, 6.5, 7.0, 6.5, ~
+## $ grune          &lt;dbl&gt; 14.8, 14.0, 16.0, 16.5, 17.0, 16.0, 16.0, 14.0, 15.0, 1~
+## $ fw             &lt;chr&gt; &quot;2.5&quot;, &quot;–&quot;, &quot;–&quot;, &quot;3&quot;, &quot;3&quot;, &quot;–&quot;, &quot;–&quot;, &quot;2&quot;, &quot;–&quot;, &quot;–&quot;, &quot;–&quot;~
+## $ others         &lt;chr&gt; &quot;6.2&quot;, &quot;8&quot;, &quot;6&quot;, &quot;5.5&quot;, &quot;5&quot;, &quot;7.5&quot;, &quot;8&quot;, &quot;7&quot;, &quot;8.5&quot;, &quot;9~
+## $ lead           &lt;chr&gt; &quot;1.6&quot;, &quot;3&quot;, &quot;4&quot;, &quot;2&quot;, &quot;3&quot;, &quot;1&quot;, &quot;2&quot;, &quot;4&quot;, &quot;3.5&quot;, &quot;4&quot;, &quot;~
+## $ end_date       &lt;date&gt; 2021-09-26, 2021-09-24, 2021-09-23, 2021-09-23, 2021-0~
+## $ month          &lt;dbl&gt; 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9~
+## $ week           &lt;dbl&gt; 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 37, 37,~</code></pre>
+<pre class="r"><code>skim(german_election_polls)</code></pre>
+<table style='width: auto;'
+        class='table table-condensed'>
+<caption>
+(#tab:glimpse into poll data)Data summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Name
+</td>
+<td style="text-align:left;">
+german_election_polls
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of rows
+</td>
+<td style="text-align:left;">
+250
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of columns
+</td>
+<td style="text-align:left;">
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+_______________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Column type frequency:
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Date
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+________________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Group variables
+</td>
+<td style="text-align:left;">
+None
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+max
+</th>
+<th style="text-align:right;">
+empty
+</th>
+<th style="text-align:right;">
+n_unique
+</th>
+<th style="text-align:right;">
+whitespace
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+polling_firm
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fieldwork_date
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+236
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+samplesize
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+199
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+abs
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fw
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+others
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lead
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: Date</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:left;">
+min
+</th>
+<th style="text-align:left;">
+max
+</th>
+<th style="text-align:left;">
+median
+</th>
+<th style="text-align:right;">
+n_unique
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+end_date
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+2021-01-04
+</td>
+<td style="text-align:left;">
+2021-09-26
+</td>
+<td style="text-align:left;">
+2021-06-10
+</td>
+<td style="text-align:right;">
+146
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+sd
+</th>
+<th style="text-align:right;">
+p0
+</th>
+<th style="text-align:right;">
+p25
+</th>
+<th style="text-align:right;">
+p50
+</th>
+<th style="text-align:right;">
+p75
+</th>
+<th style="text-align:right;">
+p100
+</th>
+<th style="text-align:left;">
+hist
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+union
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+27.08
+</td>
+<td style="text-align:right;">
+4.65
+</td>
+<td style="text-align:right;">
+19.0
+</td>
+<td style="text-align:right;">
+23.00
+</td>
+<td style="text-align:right;">
+27.0
+</td>
+<td style="text-align:right;">
+29.0
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:left;">
+&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2583&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+spd
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+18.01
+</td>
+<td style="text-align:right;">
+4.00
+</td>
+<td style="text-align:right;">
+13.0
+</td>
+<td style="text-align:right;">
+15.00
+</td>
+<td style="text-align:right;">
+16.0
+</td>
+<td style="text-align:right;">
+19.0
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+af_d
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10.60
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+<td style="text-align:right;">
+10.00
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:left;">
+&lt;U+2582&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+fdp
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+10.82
+</td>
+<td style="text-align:right;">
+1.98
+</td>
+<td style="text-align:right;">
+5.0
+</td>
+<td style="text-align:right;">
+10.00
+</td>
+<td style="text-align:right;">
+11.0
+</td>
+<td style="text-align:right;">
+12.0
+</td>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:left;">
+&lt;U+2581&gt;&lt;U+2582&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2583&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+linke
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7.01
+</td>
+<td style="text-align:right;">
+0.92
+</td>
+<td style="text-align:right;">
+4.9
+</td>
+<td style="text-align:right;">
+6.00
+</td>
+<td style="text-align:right;">
+7.0
+</td>
+<td style="text-align:right;">
+7.5
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:left;">
+&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+grune
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+19.70
+</td>
+<td style="text-align:right;">
+3.00
+</td>
+<td style="text-align:right;">
+14.0
+</td>
+<td style="text-align:right;">
+17.50
+</td>
+<td style="text-align:right;">
+19.2
+</td>
+<td style="text-align:right;">
+21.0
+</td>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:left;">
+&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2582&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+month
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5.59
+</td>
+<td style="text-align:right;">
+2.53
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+3.25
+</td>
+<td style="text-align:right;">
+6.0
+</td>
+<td style="text-align:right;">
+8.0
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:left;">
+&lt;U+2585&gt;&lt;U+2585&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2587&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+week
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+22.33
+</td>
+<td style="text-align:right;">
+11.04
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+13.00
+</td>
+<td style="text-align:right;">
+23.0
+</td>
+<td style="text-align:right;">
+32.0
+</td>
+<td style="text-align:right;">
+38
+</td>
+<td style="text-align:left;">
+&lt;U+2585&gt;&lt;U+2583&gt;&lt;U+2586&gt;&lt;U+2586&gt;&lt;U+2587&gt;
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>#Using skim, We found 1 NA
+german_election_polls = na.omit(german_election_polls)</code></pre>
+<p>To make the data more readable, we restructure the dataset and melt the 6 parties polls (Union, SPD, AfD, FDP, Linke, and Grune).
+We select the Party and Vote variables, and add the ‘end_date’ as x variable for plotting.</p>
+<pre class="r"><code>#Restructure the dataframe, select 6 parties polls and melt
+library(reshape2)
+german_election_polls_restr &lt;- german_election_polls %&gt;%
+  mutate(Union=union, SPD=spd, AfD=af_d, FDP=fdp, Linke=linke, Grune=grune) %&gt;%
+  melt(german_election_polls, id.vars=c(&quot;Union&quot;,&quot;SPD&quot;,&quot;AfD&quot;, &quot;FDP&quot;, &quot;Linke&quot;, &quot;Grune&quot;),
+                                        measure.vars = c(&quot;Union&quot;,&quot;SPD&quot;,&quot;AfD&quot;, &quot;FDP&quot;, &quot;Linke&quot;, &quot;Grune&quot;),
+                                        variable.name = &quot;Party&quot;,value.name = &quot;Vote&quot;) 
+
+
+#Select the Party and Vote variables, and add the end_date as x variable for plotting
+german_election_polls_restr &lt;- german_election_polls_restr %&gt;%
+  select(Party, Vote) %&gt;%
+  mutate(end_date=rep(german_election_polls$end_date,times=6))</code></pre>
+</div>
+<div id="plot-the-data" class="section level2">
+<h2>Plot the data</h2>
+<p>Then we use geom_smooth to generate the 2021 German Federal Election Polling Results plot of the 6 parties.</p>
+<pre class="r"><code>ggplot(german_election_polls_restr, aes(x=end_date, y=Vote, color=Party)) +
+  geom_point()+
+  geom_smooth(se=F,span=0.2)+ #span=0.2 to make the line less smoothed
+  scale_color_manual(values=c(&quot;Union&quot;=&quot;black&quot;,&quot;SPD&quot;=&quot;#AF1513&quot;,&quot;AfD&quot;=&quot;#330D9D&quot;,&quot;FDP&quot;=&quot;#FFC300&quot;,&quot;Linke&quot;=&quot;#650D9D&quot;,&quot;Grune&quot;=&quot;#0D9D36&quot;))+ #manually select colors for different parties
+  scale_x_date(date_breaks = &quot;1 month&quot; , date_labels = c(&quot;%b %y&quot;),limits=as.Date(c(&quot;2021-01-01&quot;,&quot;2021-10-01&quot;)))+
+  theme_minimal()  +
+  theme(legend.position = &quot;right&quot;,
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=14),
+        legend.key = element_rect(fill = &quot;white&quot;, color = &quot;white&quot;),
+        plot.title =element_text(size=20, face=&#39;bold&#39;,hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face=&#39;bold&#39;,hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face=&#39;bold&#39;),
+        axis.title.y = element_text(size=16,face=&#39;bold&#39;),
+        ) +
+  labs(title = &quot;2021 German Federal Election Polling Results&quot;,
+         subtitle = &quot;Combined results from different polling firms: INSA, Forsa, Kantar etc.&quot;,
+         x = &quot;End date of fieldwork&quot;,
+         y = &quot;&quot;,
+         caption = &quot;Source: https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election&quot;) +
+  ylab(&quot;Vote %&quot;)</code></pre>
+<p><img src="/project/German_election_files/figure-html/german%20poll%20plot%20(using%20geom_smooth)-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<p>The pulling result trends are illustrated in the graph, with the data of each party spreading around the generated lines.</p>
+</div>
+<div id="another-method-rolling-mean" class="section level2">
+<h2>Another method: rolling mean</h2>
+<p>Finally, we try to use another method - rolling mean of 14 records instead of directly applying smoothing lines to make the plot.</p>
+<pre class="r"><code>german_election_polls_rolling &lt;- german_election_polls_restr %&gt;%   
+  group_by(Party) %&gt;%
+  mutate( 
+    #calculate 14-record rolling average, align = left
+    Vote14 = zoo::rollmean(Vote, k=14, fill = NA,align=&quot;left&quot;))%&gt;%
+  ungroup() %&gt;%
+  na.omit(german_election_polls_rolling) #remove the NA caused by rolling average</code></pre>
+<pre class="r"><code>ggplot(german_election_polls_rolling, aes(x=end_date, y=Vote14, color=Party)) +
+  geom_point()+
+  geom_smooth(se=F,span=0.2)+ #span=0.2 to make the line less smoothed
+  scale_color_manual(values=c(&quot;Union&quot;=&quot;black&quot;,&quot;SPD&quot;=&quot;#AF1513&quot;,&quot;AfD&quot;=&quot;#330D9D&quot;,&quot;FDP&quot;=&quot;#FFC300&quot;,&quot;Linke&quot;=&quot;#650D9D&quot;,&quot;Grune&quot;=&quot;#0D9D36&quot;))+ #manually select colors for different parties
+  scale_x_date(date_breaks = &quot;1 month&quot; , date_labels = c(&quot;%b %y&quot;),limits=as.Date(c(&quot;2021-01-01&quot;,&quot;2021-10-01&quot;)))+
+  theme_minimal()  +
+  theme(legend.position = &quot;right&quot;,
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=14),
+        legend.key = element_rect(fill = &quot;white&quot;, color = &quot;white&quot;),
+        plot.title =element_text(size=20, face=&#39;bold&#39;,hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face=&#39;bold&#39;,hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face=&#39;bold&#39;),
+        axis.title.y = element_text(size=16,face=&#39;bold&#39;),
+        ) +
+  labs(title = &quot;2021 German Federal Election Polling Results (14-record rolling mean)&quot;,
+         subtitle = &quot;Combined results from different polling firms: INSA, Forsa, Kantar etc.&quot;,
+         x = &quot;End date of fieldwork&quot;,
+         y = &quot;&quot;,
+         caption = &quot;Source: https://en.wikipedia.org/wiki/Opinion_polling_for_the_2021_German_federal_election&quot;) +
+  ylab(&quot;Vote %&quot;)</code></pre>
+<p><img src="/project/German_election_files/figure-html/german%20poll%20plot(using%20rolling)-1.png" width="1440" style="display: block; margin: auto;" /></p>
+<blockquote>
+<p>Conclusion</p>
+</blockquote>
+<p>We can infer from this plot that the rolling average reached similar trendlines with the former method, but looking at the points, it also eliminated the biases of different polling firms.<br />
+The Union almost keeps the highest vote percentage over the election period although shows decending trend. Then followed by Grune,and SPD. Noticeably, the voting percentage of SPD shows significant rise since Auguest 2021, and ranked the highest percentage record over the 6 parties.</p>
+</div>

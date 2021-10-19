@@ -1,0 +1,988 @@
+---
+title: "Biden's Approval Margins"
+author: "Study group B3: Doris Liu"
+date: "2021-10-19"
+output: html_document
+---
+
+
+
+<p>We import Biden’s approval dataset from fivethirtyeight.com <a href="https://projects.fivethirtyeight.com/biden-approval-ratings">all polls that track the president’s approval</a>, and use <code>lubridate</code> to fix dates.</p>
+<pre class="r"><code># Import approval polls data directly off fivethirtyeight website
+approval_polllist &lt;- read_csv(&quot;https://projects.fivethirtyeight.com/biden-approval-data/approval_polllist.csv&quot;)
+
+glimpse(approval_polllist)</code></pre>
+<pre><code>## Rows: 1,922
+## Columns: 22
+## $ president           &lt;chr&gt; &quot;Joseph R. Biden Jr.&quot;, &quot;Joseph R. Biden Jr.&quot;, &quot;Jos~
+## $ subgroup            &lt;chr&gt; &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;, &quot;All polls&quot;~
+## $ modeldate           &lt;chr&gt; &quot;10/18/2021&quot;, &quot;10/18/2021&quot;, &quot;10/18/2021&quot;, &quot;10/18/2~
+## $ startdate           &lt;chr&gt; &quot;1/19/2021&quot;, &quot;1/19/2021&quot;, &quot;1/20/2021&quot;, &quot;1/20/2021&quot;~
+## $ enddate             &lt;chr&gt; &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/21/2021&quot;, &quot;1/21/2021&quot;~
+## $ pollster            &lt;chr&gt; &quot;Morning Consult&quot;, &quot;Rasmussen Reports/Pulse Opinio~
+## $ grade               &lt;chr&gt; &quot;B&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;B+&quot;, &quot;B&quot;, &quot;B&quot;, &quot;B-&quot;, &quot;B&quot;, &quot;B&quot;, &quot;B~
+## $ samplesize          &lt;dbl&gt; 15000, 1500, 1115, 1516, 1993, 15000, 1200, 15000,~
+## $ population          &lt;chr&gt; &quot;a&quot;, &quot;lv&quot;, &quot;a&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;a&quot;, &quot;rv&quot;, &quot;a&quot;, &quot;lv&quot;, &quot;~
+## $ weight              &lt;dbl&gt; 0.2594, 0.3382, 1.1014, 1.2454, 0.0930, 0.2333, 0.~
+## $ influence           &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,~
+## $ approve             &lt;dbl&gt; 50, 48, 55, 45, 56, 51, 58, 52, 48, 63, 55, 53, 48~
+## $ disapprove          &lt;dbl&gt; 28, 45, 32, 28, 31, 28, 32, 29, 47, 37, 33, 29, 47~
+## $ adjusted_approve    &lt;dbl&gt; 48.6, 50.5, 53.9, 46.5, 54.6, 49.6, 57.0, 50.6, 50~
+## $ adjusted_disapprove &lt;dbl&gt; 31.2, 38.8, 33.0, 28.4, 34.2, 31.2, 33.1, 32.2, 40~
+## $ multiversions       &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA~
+## $ tracking            &lt;lgl&gt; TRUE, TRUE, NA, NA, NA, TRUE, NA, TRUE, TRUE, NA, ~
+## $ url                 &lt;chr&gt; &quot;https://morningconsult.com/form/global-leader-app~
+## $ poll_id             &lt;dbl&gt; 74272, 74247, 74248, 74327, 74246, 74273, 74270, 7~
+## $ question_id         &lt;dbl&gt; 139491, 139395, 139404, 139570, 139394, 139492, 13~
+## $ createddate         &lt;chr&gt; &quot;1/28/2021&quot;, &quot;1/22/2021&quot;, &quot;1/22/2021&quot;, &quot;2/2/2021&quot;,~
+## $ timestamp           &lt;chr&gt; &quot;09:38:10 18 Oct 2021&quot;, &quot;09:38:10 18 Oct 2021&quot;, &quot;0~</code></pre>
+<pre class="r"><code>skim(approval_polllist)</code></pre>
+<table style='width: auto;'
+        class='table table-condensed'>
+<caption>
+(#tab:import biden approval dataset and fix dates)Data summary
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Name
+</td>
+<td style="text-align:left;">
+approval_polllist
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of rows
+</td>
+<td style="text-align:left;">
+1922
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Number of columns
+</td>
+<td style="text-align:left;">
+22
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+_______________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Column type frequency:
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+character
+</td>
+<td style="text-align:left;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+logical
+</td>
+<td style="text-align:left;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+numeric
+</td>
+<td style="text-align:left;">
+9
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+________________________
+</td>
+<td style="text-align:left;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Group variables
+</td>
+<td style="text-align:left;">
+None
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+min
+</th>
+<th style="text-align:right;">
+max
+</th>
+<th style="text-align:right;">
+empty
+</th>
+<th style="text-align:right;">
+n_unique
+</th>
+<th style="text-align:right;">
+whitespace
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+president
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+subgroup
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+modeldate
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+startdate
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+268
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+enddate
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+268
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+pollster
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+47
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+grade
+</td>
+<td style="text-align:right;">
+32
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+population
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+multiversions
+</td>
+<td style="text-align:right;">
+1888
+</td>
+<td style="text-align:right;">
+0.02
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+url
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+33
+</td>
+<td style="text-align:right;">
+275
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+462
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+createddate
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+203
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+timestamp
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: logical</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:left;">
+count
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+tracking
+</td>
+<td style="text-align:right;">
+996
+</td>
+<td style="text-align:right;">
+0.48
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+TRU: 926
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+skim_variable
+</th>
+<th style="text-align:right;">
+n_missing
+</th>
+<th style="text-align:right;">
+complete_rate
+</th>
+<th style="text-align:right;">
+mean
+</th>
+<th style="text-align:right;">
+sd
+</th>
+<th style="text-align:right;">
+p0
+</th>
+<th style="text-align:right;">
+p25
+</th>
+<th style="text-align:right;">
+p50
+</th>
+<th style="text-align:right;">
+p75
+</th>
+<th style="text-align:right;">
+p100
+</th>
+<th style="text-align:left;">
+hist
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+samplesize
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5.38e+03
+</td>
+<td style="text-align:right;">
+6109.48
+</td>
+<td style="text-align:right;">
+515.0
+</td>
+<td style="text-align:right;">
+1.27e+03
+</td>
+<td style="text-align:right;">
+1.50e+03
+</td>
+<td style="text-align:right;">
+1.50e+04
+</td>
+<td style="text-align:right;">
+2.20e+04
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+weight
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5.70e-01
+</td>
+<td style="text-align:right;">
+0.59
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.20e-01
+</td>
+<td style="text-align:right;">
+2.10e-01
+</td>
+<td style="text-align:right;">
+8.90e-01
+</td>
+<td style="text-align:right;">
+3.16e+00
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+influence
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+2.00e-02
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.00e+00
+</td>
+<td style="text-align:right;">
+0.00e+00
+</td>
+<td style="text-align:right;">
+0.00e+00
+</td>
+<td style="text-align:right;">
+1.02e+00
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2581&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+approve
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5.14e+01
+</td>
+<td style="text-align:right;">
+4.38
+</td>
+<td style="text-align:right;">
+38.0
+</td>
+<td style="text-align:right;">
+4.80e+01
+</td>
+<td style="text-align:right;">
+5.20e+01
+</td>
+<td style="text-align:right;">
+5.40e+01
+</td>
+<td style="text-align:right;">
+6.30e+01
+</td>
+<td style="text-align:left;">
+&lt;U+2581&gt;&lt;U+2585&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+disapprove
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4.25e+01
+</td>
+<td style="text-align:right;">
+5.94
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+3.80e+01
+</td>
+<td style="text-align:right;">
+4.20e+01
+</td>
+<td style="text-align:right;">
+4.70e+01
+</td>
+<td style="text-align:right;">
+5.80e+01
+</td>
+<td style="text-align:left;">
+&lt;U+2582&gt;&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2585&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+adjusted_approve
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+5.12e+01
+</td>
+<td style="text-align:right;">
+3.70
+</td>
+<td style="text-align:right;">
+40.4
+</td>
+<td style="text-align:right;">
+4.94e+01
+</td>
+<td style="text-align:right;">
+5.17e+01
+</td>
+<td style="text-align:right;">
+5.36e+01
+</td>
+<td style="text-align:right;">
+6.35e+01
+</td>
+<td style="text-align:left;">
+&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+adjusted_disapprove
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+4.24e+01
+</td>
+<td style="text-align:right;">
+4.43
+</td>
+<td style="text-align:right;">
+27.3
+</td>
+<td style="text-align:right;">
+3.92e+01
+</td>
+<td style="text-align:right;">
+4.20e+01
+</td>
+<td style="text-align:right;">
+4.52e+01
+</td>
+<td style="text-align:right;">
+5.52e+01
+</td>
+<td style="text-align:left;">
+&lt;U+2581&gt;&lt;U+2583&gt;&lt;U+2587&gt;&lt;U+2583&gt;&lt;U+2581&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+poll_id
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+7.52e+04
+</td>
+<td style="text-align:right;">
+709.25
+</td>
+<td style="text-align:right;">
+74246.0
+</td>
+<td style="text-align:right;">
+7.46e+04
+</td>
+<td style="text-align:right;">
+7.49e+04
+</td>
+<td style="text-align:right;">
+7.56e+04
+</td>
+<td style="text-align:right;">
+7.69e+04
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2586&gt;&lt;U+2583&gt;&lt;U+2582&gt;&lt;U+2582&gt;
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+question_id
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1.43e+05
+</td>
+<td style="text-align:right;">
+2095.44
+</td>
+<td style="text-align:right;">
+139394.0
+</td>
+<td style="text-align:right;">
+1.40e+05
+</td>
+<td style="text-align:right;">
+1.43e+05
+</td>
+<td style="text-align:right;">
+1.44e+05
+</td>
+<td style="text-align:right;">
+1.46e+05
+</td>
+<td style="text-align:left;">
+&lt;U+2587&gt;&lt;U+2581&gt;&lt;U+2586&gt;&lt;U+2585&gt;&lt;U+2583&gt;
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code># Use `lubridate` to fix dates, as they are given as characters.
+approval_polllist &lt;- approval_polllist %&gt;%
+    mutate(modeldate = mdy(modeldate)) %&gt;%
+    mutate(startdate = mdy(startdate)) %&gt;%
+    mutate(enddate = mdy(enddate)) %&gt;%
+    mutate(createddate = mdy(createddate))
+str(approval_polllist)</code></pre>
+<pre><code>## spec_tbl_df [1,922 x 22] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+##  $ president          : chr [1:1922] &quot;Joseph R. Biden Jr.&quot; &quot;Joseph R. Biden Jr.&quot; &quot;Joseph R. Biden Jr.&quot; &quot;Joseph R. Biden Jr.&quot; ...
+##  $ subgroup           : chr [1:1922] &quot;All polls&quot; &quot;All polls&quot; &quot;All polls&quot; &quot;All polls&quot; ...
+##  $ modeldate          : Date[1:1922], format: &quot;2021-10-18&quot; &quot;2021-10-18&quot; ...
+##  $ startdate          : Date[1:1922], format: &quot;2021-01-19&quot; &quot;2021-01-19&quot; ...
+##  $ enddate            : Date[1:1922], format: &quot;2021-01-21&quot; &quot;2021-01-21&quot; ...
+##  $ pollster           : chr [1:1922] &quot;Morning Consult&quot; &quot;Rasmussen Reports/Pulse Opinion Research&quot; &quot;Ipsos&quot; &quot;YouGov&quot; ...
+##  $ grade              : chr [1:1922] &quot;B&quot; &quot;B&quot; &quot;B-&quot; &quot;B+&quot; ...
+##  $ samplesize         : num [1:1922] 15000 1500 1115 1516 1993 ...
+##  $ population         : chr [1:1922] &quot;a&quot; &quot;lv&quot; &quot;a&quot; &quot;a&quot; ...
+##  $ weight             : num [1:1922] 0.259 0.338 1.101 1.245 0.093 ...
+##  $ influence          : num [1:1922] 0 0 0 0 0 0 0 0 0 0 ...
+##  $ approve            : num [1:1922] 50 48 55 45 56 51 58 52 48 63 ...
+##  $ disapprove         : num [1:1922] 28 45 32 28 31 28 32 29 47 37 ...
+##  $ adjusted_approve   : num [1:1922] 48.6 50.5 53.9 46.5 54.6 ...
+##  $ adjusted_disapprove: num [1:1922] 31.2 38.8 33 28.4 34.2 ...
+##  $ multiversions      : chr [1:1922] NA NA NA NA ...
+##  $ tracking           : logi [1:1922] TRUE TRUE NA NA NA TRUE ...
+##  $ url                : chr [1:1922] &quot;https://morningconsult.com/form/global-leader-approval/&quot; &quot;https://www.rasmussenreports.com/public_content/politics/biden_administration/biden_approval_index_history&quot; &quot;https://www.ipsos.com/sites/default/files/ct/news/documents/2021-01/2021_reuters_tracking_-_core_political_pres&quot;| __truncated__ &quot;https://docs.cdn.yougov.com/u3h9dresbn/20210120_yahoo_coronavirus_toplines.pdf&quot; ...
+##  $ poll_id            : num [1:1922] 74272 74247 74248 74327 74246 ...
+##  $ question_id        : num [1:1922] 139491 139395 139404 139570 139394 ...
+##  $ createddate        : Date[1:1922], format: &quot;2021-01-28&quot; &quot;2021-01-22&quot; ...
+##  $ timestamp          : chr [1:1922] &quot;09:38:10 18 Oct 2021&quot; &quot;09:38:10 18 Oct 2021&quot; &quot;09:38:10 18 Oct 2021&quot; &quot;09:38:10 18 Oct 2021&quot; ...
+##  - attr(*, &quot;spec&quot;)=
+##   .. cols(
+##   ..   president = col_character(),
+##   ..   subgroup = col_character(),
+##   ..   modeldate = col_character(),
+##   ..   startdate = col_character(),
+##   ..   enddate = col_character(),
+##   ..   pollster = col_character(),
+##   ..   grade = col_character(),
+##   ..   samplesize = col_double(),
+##   ..   population = col_character(),
+##   ..   weight = col_double(),
+##   ..   influence = col_double(),
+##   ..   approve = col_double(),
+##   ..   disapprove = col_double(),
+##   ..   adjusted_approve = col_double(),
+##   ..   adjusted_disapprove = col_double(),
+##   ..   multiversions = col_character(),
+##   ..   tracking = col_logical(),
+##   ..   url = col_character(),
+##   ..   poll_id = col_double(),
+##   ..   question_id = col_double(),
+##   ..   createddate = col_character(),
+##   ..   timestamp = col_character()
+##   .. )
+##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;</code></pre>
+<div id="average-net-approval-rate" class="section level2">
+<h2>Average net approval rate</h2>
+<p>Then we calculate the average net approval rate (approve- disapprove) for each week since he got into office (Jan 20th 2021), and get the mean, standard deviation, and 95% confidence interval of the weekly net approval.</p>
+<pre class="r"><code>approval_polllist_avg_approval &lt;- approval_polllist %&gt;%
+    mutate(net_approval = approve - disapprove) %&gt;%
+    mutate(end_week = week(enddate)) %&gt;%
+    group_by(end_week) %&gt;%
+    summarise(average_net_approval = mean(net_approval), sd_net_approval = sd(net_approval),
+        count = n(), se_net_approval = sd_net_approval/sqrt(count), upper_bound = average_net_approval +
+            se_net_approval * qt(0.975, count - 1), lower_bound = average_net_approval -
+            se_net_approval * qt(0.975, count - 1))
+
+approval_polllist_avg_approval</code></pre>
+<pre><code>## # A tibble: 40 x 7
+##    end_week average_net_approval sd_net_approval count se_net_approval upper_bound
+##       &lt;dbl&gt;                &lt;dbl&gt;           &lt;dbl&gt; &lt;int&gt;           &lt;dbl&gt;       &lt;dbl&gt;
+##  1        3                 18.6            8.23    11            2.48        24.2
+##  2        4                 18.5            8.94    51            1.25        21.0
+##  3        5                 16.7            7.59    54            1.03        18.8
+##  4        6                 16.6            8.16    37            1.34        19.3
+##  5        7                 16.3            7.34    50            1.04        18.4
+##  6        8                 15.0            7.77    50            1.10        17.2
+##  7        9                 13.4            7.46    53            1.02        15.4
+##  8       10                 12.9            7.08    49            1.01        15.0
+##  9       11                 15.8            7.45    43            1.14        18.1
+## 10       12                 14.7            9.32    57            1.23        17.2
+## # ... with 30 more rows, and 1 more variable: lower_bound &lt;dbl&gt;</code></pre>
+<p>Biden’s weekly average net approval rate plot is then generated, along with the smooth line and 95% confidence interval.</p>
+<pre class="r"><code>ggplot(approval_polllist_avg_approval, aes(x=end_week,y=average_net_approval)) +
+  geom_point(color=&quot;red&quot;)+
+  geom_line(color=&quot;red&quot;)+
+  geom_smooth(se=F,span=1)+
+  geom_ribbon(aes(ymin=lower_bound,ymax=upper_bound),alpha=0.1,color=&quot;grey&quot;)+
+  scale_y_continuous(limits=c(-10,25))+
+  geom_hline(yintercept=0,color=&quot;orange&quot;,size=1.5)+
+  theme_minimal()  +
+  theme(plot.title =element_text(size=16, face=&#39;bold&#39;,hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face=&#39;bold&#39;,hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face=&#39;bold&#39;),
+        axis.title.y = element_text(size=16,face=&#39;bold&#39;),
+        ) +
+  labs(title = &quot;Biden Net Approval Rate&quot;,
+         subtitle = &quot;Weekly Average&quot;,
+         x = &quot;Week&quot;,
+         y = &quot;&quot;,
+         caption = &quot;Source: https://projects.fivethirtyeight.com/biden-approval-ratings&quot;) +
+  ylab(&quot;Average net approval rate&quot;)</code></pre>
+<p><img src="/project/Biden_vote_files/figure-html/plot%20the%20average%20net%20approval%20rate-1.png" width="1152" style="display: block; margin: auto;" /></p>
+</div>
+<div id="confidence-intervals-for-week-3-and-week-25" class="section level2">
+<h2>Confidence Intervals for Week 3 and Week 25</h2>
+<p>The confidence intervals for week 3 and week 25 are respectively the largest and the smallest. In week 3 the confidence interval ranges between 13 and 24, whereas in week 25 the lower bound is 10 and the upper bound 13. The difference is due to the sample size of the data. The much higher number of values for week 25 decreases exponentially the standard error, that is in fact 0.6 compared to the 2.5 for week 3.</p>
+</div>

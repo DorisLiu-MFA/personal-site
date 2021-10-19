@@ -74,7 +74,7 @@ summaryLength                 = 10
 [[menu.main]]
 identifier = "Resume"
 pre = "📝"
-url = "resume/CV-XinyiLiu-LBS-updated.pdf" 
+url = "https://drive.google.com/file/d/1Vl0exaOfcFPEHY2Uqy4ueGIjcRIKs2Qg/view?usp=sharing" 
 weight = 1 
 
 

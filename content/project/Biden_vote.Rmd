@@ -1,0 +1,111 @@
+---
+title: "Biden's Approval Margins"
+author: "Study group B3: Doris Liu"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, 
+  warning = FALSE, 
+  tidy=TRUE,     # display code as typed
+  size="small")   # slightly smaller font for code
+options(digits = 3)
+
+# default figure size
+knitr::opts_chunk$set(
+  fig.width=6.75, 
+  fig.height=6.75,
+  fig.align = "center"
+)
+```
+
+
+```{r load-libraries, include=FALSE}
+
+library(ggtext)
+library(tidyverse)  # Load ggplot2, dplyr, and all the other tidyverse packages
+library(mosaic)
+library(ggthemes)
+library(lubridate)
+library(here)
+library(skimr)
+library(janitor)
+library(httr)
+library(readxl)
+library(vroom)
+library(infer)
+library(rvest)
+library(kableExtra)
+```
+
+We import Biden's approval dataset from fivethirtyeight.com [all polls that track the president's approval ](https://projects.fivethirtyeight.com/biden-approval-ratings), and use `lubridate` to fix dates.
+
+```{r, import biden approval dataset and fix dates, cache=TRUE}
+# Import approval polls data directly off fivethirtyeight website
+approval_polllist <- read_csv('https://projects.fivethirtyeight.com/biden-approval-data/approval_polllist.csv') 
+
+glimpse(approval_polllist)
+skim(approval_polllist)
+
+# Use `lubridate` to fix dates, as they are given as characters.
+approval_polllist <- approval_polllist %>%
+  mutate(modeldate = mdy(modeldate)) %>%
+  mutate(startdate = mdy(startdate)) %>%
+  mutate(enddate = mdy(enddate)) %>%
+  mutate(createddate = mdy(createddate))
+str(approval_polllist)
+```
+
+## Average net approval rate
+
+Then we calculate the average net approval rate (approve- disapprove) for each week since he got into office (Jan 20th 2021), and get the mean, standard deviation, and 95% confidence interval of the weekly net approval. 
+```{r calculate the average net approval rate}
+approval_polllist_avg_approval <- approval_polllist %>%
+  mutate(net_approval = approve-disapprove) %>%
+  mutate(end_week = week(enddate)) %>%
+  group_by(end_week)%>%
+  summarise(average_net_approval = mean(net_approval),
+            sd_net_approval = sd(net_approval),
+            count=n(),
+            se_net_approval = sd_net_approval/sqrt(count),
+            upper_bound = average_net_approval+se_net_approval*qt(0.975, count-1),
+            lower_bound = average_net_approval-se_net_approval*qt(0.975, count-1))
+
+approval_polllist_avg_approval
+  
+```
+
+Biden's weekly average net approval rate plot is then generated, along with the smooth line and 95% confidence interval.
+```{r plot the average net approval rate, fig.width=12, fig.height=9}
+ggplot(approval_polllist_avg_approval, aes(x=end_week,y=average_net_approval)) +
+  geom_point(color="red")+
+  geom_line(color="red")+
+  geom_smooth(se=F,span=1)+
+  geom_ribbon(aes(ymin=lower_bound,ymax=upper_bound),alpha=0.1,color="grey")+
+  scale_y_continuous(limits=c(-10,25))+
+  geom_hline(yintercept=0,color="orange",size=1.5)+
+  theme_minimal()  +
+  theme(plot.title =element_text(size=16, face='bold',hjust = 0.5,margin = margin(10,0,10,0)),
+        plot.subtitle =element_text(size=16, face='bold',hjust = 0.5), #put titles in the middle
+        axis.text.x = element_text(size=10),
+        axis.text.y = element_text(size=12),
+        axis.ticks.x = element_line(),
+        axis.ticks.y=element_line(),
+        axis.title.x = element_text(size=16,face='bold'),
+        axis.title.y = element_text(size=16,face='bold'),
+        ) +
+  labs(title = "Biden Net Approval Rate",
+         subtitle = "Weekly Average",
+         x = "Week",
+         y = "",
+         caption = "Source: https://projects.fivethirtyeight.com/biden-approval-ratings") +
+  ylab("Average net approval rate")
+  
+```
+
+
+## Confidence Intervals for Week 3 and Week 25
+                                                              
+The confidence intervals for week 3 and week 25 are respectively the largest and the smallest. In week 3 the confidence interval ranges between 13 and 24, whereas in week 25 the lower bound is 10 and the upper bound 13. The difference is due to the sample size of the data. The much higher number of values for week 25 decreases exponentially the standard error, that is in fact 0.6 compared to the 2.5 for week 3.
